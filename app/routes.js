@@ -47,6 +47,22 @@ export default function createRoutes(store) {
           .catch(errorLoading);
       },
     }, {
+      path: '/nuclear-chemistry',
+      name: 'nuclear-chemistry',
+      getComponent(nextState, cb) {
+        import('containers/NuclearChemistry')
+          .then(loadModule(cb))
+          .catch(errorLoading);
+      },
+    }, {
+      path: '/categorize',
+      name: 'categorize',
+      getComponent(nextState, cb) {
+        import('containers/Categorize')
+          .then(loadModule(cb))
+          .catch(errorLoading);
+      },
+    }, {
       path: '*',
       name: 'notfound',
       getComponent(nextState, cb) {
