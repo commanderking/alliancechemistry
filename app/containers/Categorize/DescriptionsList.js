@@ -24,7 +24,7 @@ const ScoreSpan = styled.span`
     if (score / highScore > 0.9) {
       return 'green';
     } else if (score / highScore > 0.7) {
-      return 'yellow';
+      return 'orange';
     } else {
       return 'red'
     }
