@@ -4,7 +4,6 @@ import CategoryList from './CategoryList';
 import styled from 'styled-components';
 import ListItem from './ListItem';
 
-
 const categories = ["Alpha Decay", "Beta Decay", "Gamma Radiation"];
 
 const CategoryActivityStyle = styled.div`
@@ -27,7 +26,8 @@ class CategoryActivity extends Component {
     this.state = {
       attempts: 0,
       currentScore: 0,
-      allCorrect: false,
+      highScore: 0,
+      activityComplete: false,
       uncategorizedList: null
     }
   }
@@ -53,6 +53,7 @@ class CategoryActivity extends Component {
     this.setState({[currentCategory] : newCategoryState});
   }
   handleDragItem(event) {
+    console.log("dragging");
     let {index, correctcategory, currentcategory} = event.target.dataset;
     this.setState({ draggedItem: {
       index: index,
@@ -61,10 +62,16 @@ class CategoryActivity extends Component {
       currentCategory: currentcategory || "uncategorizedList"
     }});
   }
+  handleDragEnd() {
+    this.setState({draggedItem: null});
+  }
+
   checkAnswer() {
     var that = this;
     let currentScore = 0;
     let answerKey = {};
+
+    // mark item as correct or not and tally score
     categories.forEach(function(category,i) {
       answerKey[category] = that.state[category].map((item, i) => {
         if (item.correctCategory !== category) {
@@ -77,15 +84,21 @@ class CategoryActivity extends Component {
       });
     });
 
+    // Set the new state to reflect incorrect answers
+
+    let activityComplete = currentScore === this.state.highScore ? true: false;
+
     let newState = {
       attempts: this.state.attempts += 1,
-      currentScore: currentScore
+      currentScore: currentScore,
+      activityComplete: activityComplete
     }
     categories.forEach((categoryName, i)=> {
       newState[categoryName] = answerKey[categoryName];
     })
     this.setState(newState);
   }
+
   renderCategories() {
     var that = this;
     return categories.map((categoryName) => {
@@ -94,12 +107,14 @@ class CategoryActivity extends Component {
         currentItems={this.state[categoryName]}
         removeItem={that.removeItem.bind(this)}
         handleDragItem={this.handleDragItem.bind(this)}
-        renderCategoryList={this.renderCategoryList}
+        renderCategoryListItems={this.renderCategoryListItems}
         draggedItem={this.state.draggedItem}
         addItem={this.addItem.bind(this)}/>;
     })
   }
-  renderCategoryList(items, categoryName) {
+
+  renderCategoryListItems(items, categoryName) {
+    var that = this;
     return items.map((item, i) => {
       return (
         <ListItem
@@ -109,6 +124,8 @@ class CategoryActivity extends Component {
           data-correctcategory={item.correctCategory}
           data-currentcategory={categoryName}
           draggable="true"
+          onClick={this.handleDragEnd}
+          onDragEnd={this.handleDragEnd}
           onDragStart={this.handleDragItem.bind(this)}>
             {item.text}
         </ListItem>
@@ -123,12 +140,14 @@ class CategoryActivity extends Component {
         return (
           <CategoryActivityStyle>
             <DescriptionsList items={uncategorizedList}
-              renderCategoryList={this.renderCategoryList}
+              renderCategoryListItems={this.renderCategoryListItems}
               handleDragItem={this.handleDragItem.bind(this)}
+              handleDragEnd={this.handleDragEnd.bind(this)}
               checkAnswer={this.checkAnswer.bind(this)}
               attempts={this.state.attempts}
               currentScore={this.state.currentScore}
-              highScore={this.state.highScore}/>
+              highScore={this.state.highScore}
+              activityComplete={this.state.activityComplete}/>
             <CategoriesWrapper>
               {this.renderCategories()}
             </CategoriesWrapper>
@@ -165,7 +184,7 @@ var testList = [
   },
   {
     "text" : "is a form of electromagnetic radiation",
-    "correctCategory": "Gamma Decay"
+    "correctCategory": "Gamma Radiation"
   },
   {
     "text" : "the particles released can travel a few meters through the air",

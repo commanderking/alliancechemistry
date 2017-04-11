@@ -3,20 +3,23 @@ import styled from 'styled-components';
 import ListItem from './ListItem';
 
 const CategoryUl = styled.div`
-  width: 32%;
+  width: 33.3%;
   display: inline-block;
   vertical-align: top;
-  min-height: 500px;
-  height: 100%;
   position: relative;
 `;
 
 const DropArea = styled.div`
-  width: 90%;
-  height: 90%;
+  width: 95%;
   margin: auto;
   min-height: 500px;
-  border: 1px solid black;
+  border-radius: 5px;
+  padding: 0.25em;
+  background-color: lightgray;
+  border: ${props => {
+    return props.draggedItem === null ? 'none' : '2px dotted black';
+  }}
+
 `;
 
 class CategoryList extends Component {
@@ -44,8 +47,9 @@ class CategoryList extends Component {
         <h3>{categoryName}</h3>
         <DropArea
           onDrop={this.drop.bind(this)}
-          onDragOver={this.allowDrop.bind(this)}>
-          {this.props.renderCategoryList(currentItems, categoryName)}
+          onDragOver={this.allowDrop.bind(this)}
+          draggedItem={this.props.draggedItem}>
+          {this.props.renderCategoryListItems(currentItems, categoryName)}
         </DropArea>
       </CategoryUl>
     )

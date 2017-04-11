@@ -3,7 +3,7 @@ import styled from 'styled-components';
 
 const ListItem = styled.li`
   list-style-type: none;
-  padding: 0.5em;
+  padding: 0.25em;
   border: 1px solid black;
   &:hover {
     cursor: pointer;
@@ -22,6 +22,7 @@ const ListItem = styled.li`
         return 'black'
     }
   }};
+  background-color: #FAFAFA;
 `;
 
 export default ListItem;
