@@ -23,7 +23,7 @@ const ScoreSpan = styled.span`
     let highScore = props.highScore;
     if (score / highScore > 0.9) {
       return 'green';
-    } else if (score / highScore > 0.7) {
+    } else if (score / highScore >= 0.7) {
       return 'orange';
     } else {
       return 'red'
@@ -34,16 +34,32 @@ const ScoreSpan = styled.span`
 class DescriptionsList extends Component {
   render () {
     if (this.props.items.length === 0) {
+      let { currentScore, highScore, attempts } = this.props;
+
+      // Show submit button as long as high score not reached
+      let activeButton = currentScore === highScore ?
+          null :
+          <Button bsStyle="primary" onClick={this.props.checkAnswer}>Submit Answers</Button>
+
+      // Don't show Current / Attempted score when user hasn't attempted
+      // TODO: Should be its own component
+      let progressDisplay;
+      if (attempts === 0 || currentScore === highScore) {
+        progressDisplay = <h3>Ready to Submit?</h3>;
+      } else {
+        progressDisplay = <div>
+                            <h3>Current Score: <ScoreSpan currentScore = {currentScore}
+                                                          highScore = {highScore}>
+                                                          {currentScore} / {highScore}
+                                              </ScoreSpan>
+                            </h3>
+                            <h3>Attempts: {attempts}</h3>
+                          </div>
+      }
       return (
         <DescriptionListWrapper>
-          <h3>Current Score: <ScoreSpan
-              currentScore = {this.props.currentScore}
-              highScore = {this.props.highScore}>
-              {this.props.currentScore} / {this.props.highScore}
-            </ScoreSpan>
-          </h3>
-          <h3>Attempts: {this.props.attempts}</h3>
-          <Button bsStyle="primary" onClick={this.props.checkAnswer}>Submit Answers</Button>
+          {progressDisplay}
+          {activeButton}
         </DescriptionListWrapper>
       )
     }

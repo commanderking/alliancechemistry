@@ -3,6 +3,7 @@ import DescriptionsList from './DescriptionsList';
 import CategoryList from './CategoryList';
 import styled from 'styled-components';
 import ListItem from './ListItem';
+import Results from './Results';
 
 const categories = ["Alpha Decay", "Beta Decay", "Gamma Radiation"];
 
@@ -21,9 +22,13 @@ const CategoriesWrapper = styled.div`
 `;
 
 class CategoryActivity extends Component {
+
   constructor(props) {
     super(props);
-    this.state = {
+    this.state = this.initialState();
+  }
+  initialState() {
+    return {
       attempts: 0,
       currentScore: 0,
       highScore: 0,
@@ -99,6 +104,10 @@ class CategoryActivity extends Component {
     this.setState(newState);
   }
 
+  reset() {
+    window.location.reload();
+  }
+
   renderCategories() {
     var that = this;
     return categories.map((categoryName) => {
@@ -124,7 +133,6 @@ class CategoryActivity extends Component {
           data-correctcategory={item.correctCategory}
           data-currentcategory={categoryName}
           draggable="true"
-          onClick={this.handleDragEnd}
           onDragEnd={this.handleDragEnd}
           onDragStart={this.handleDragItem.bind(this)}>
             {item.text}
@@ -133,12 +141,19 @@ class CategoryActivity extends Component {
     })
   }
   render() {
-    let {uncategorizedList} = this.state;
+    let {uncategorizedList, attempts, currentScore} = this.state;
+    // let Results = this.state.activityComplete ? <Results /> : <Results />
+    var results = this.state.activityComplete ?
+      <Results
+        attempts={attempts}
+        currentScore={currentScore}
+        reset={this.reset.bind(this)}/> : null;
     if (!uncategorizedList) {
       return <div>Loading... </div>
     } else {
         return (
           <CategoryActivityStyle>
+            {results}
             <DescriptionsList items={uncategorizedList}
               renderCategoryListItems={this.renderCategoryListItems}
               handleDragItem={this.handleDragItem.bind(this)}
