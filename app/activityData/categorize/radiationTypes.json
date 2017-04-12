@@ -1,0 +1,46 @@
+{
+  "categories" : ["Alpha Decay", "Beta Decay", "Gamma Radiation"],
+  "instructions" : "Categorize each description in as few attempts as possible",
+  "descriptionList" : [
+    {
+      "text" : "A neutron changes into a proton and an electron",
+      "correctCategory": "Beta Decay"
+    },
+    {
+      "text" : "Can travel across galaxies",
+      "correctCategory" : "Gamma Radiation"
+    },
+    {
+      "text" : "the particles released can be stopped by a piece of paper",
+      "correctCategory" : "Alpha Decay"
+    },
+    {
+      "text" : "the particles released have 2 protons and 2 neutrons like a helium nucleus",
+      "correctCategory": "Alpha Decay"
+    },
+    {
+      "text" : "the particles released can travel only a few centimeters through the air",
+      "correctCategory" : "Alpha Decay"
+    },
+    {
+      "text" : "the particles released can only be stopped by a thick sheet of lead or several meters of concrete or water",
+      "correctCategory": "Gamma Radiation"
+    },
+    {
+      "text" : "is a form of electromagnetic radiation",
+      "correctCategory": "Gamma Radiation"
+    },
+    {
+      "text" : "the particles released can travel a few meters through the air",
+      "correctCategory" : "Beta Decay"
+    },
+    {
+      "text" : "particles released are most dangerous when swallowed or breathed in",
+      "correctCategory": "Alpha Decay"
+    },
+    {
+      "text" : "can be used to reduce the risk of food-borne illnesses",
+      "correctCategory" : "Gamma Radiation"
+    }
+  ]
+}

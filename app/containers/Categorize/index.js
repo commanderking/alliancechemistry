@@ -4,12 +4,10 @@ import CategoryList from './CategoryList';
 import styled from 'styled-components';
 import ListItem from './ListItem';
 import Results from './Results';
+import Instructions from './Instructions';
+import shuffle from '../../utils/shuffle';
 
 const categories = ["Alpha Decay", "Beta Decay", "Gamma Radiation"];
-
-const CategoryActivityStyle = styled.div`
-  min-height: 500px;
-`;
 
 const CategoriesWrapper = styled.div`
   width: 75%;
@@ -20,6 +18,9 @@ const CategoriesWrapper = styled.div`
   height: 100%;
   position: relative;
 `;
+
+var instructions = "Categorize each description in as few attempts as possible";
+
 
 class CategoryActivity extends Component {
 
@@ -33,12 +34,15 @@ class CategoryActivity extends Component {
       currentScore: 0,
       highScore: 0,
       activityComplete: false,
-      uncategorizedList: null
+      uncategorizedList: null,
+      instructionsActive: true,
+      instructionsText: ""
     }
   }
   componentDidMount() {
     var initialState = {};
-    initialState.uncategorizedList = testList;
+    initialState.uncategorizedList = shuffle(testList);
+    initialState.instructionsText = instructions;
     initialState.highScore = testList.length;
     categories.forEach((categoryName, i)=> {
       initialState[categoryName] = [];
@@ -70,7 +74,6 @@ class CategoryActivity extends Component {
   handleDragEnd() {
     this.setState({draggedItem: null});
   }
-
   checkAnswer() {
     var that = this;
     let currentScore = 0;
@@ -90,7 +93,6 @@ class CategoryActivity extends Component {
     });
 
     // Set the new state to reflect incorrect answers
-
     let activityComplete = currentScore === this.state.highScore ? true: false;
 
     let newState = {
@@ -103,11 +105,9 @@ class CategoryActivity extends Component {
     })
     this.setState(newState);
   }
-
   reset() {
     window.location.reload();
   }
-
   renderCategories() {
     var that = this;
     return categories.map((categoryName) => {
@@ -120,6 +120,13 @@ class CategoryActivity extends Component {
         draggedItem={this.state.draggedItem}
         addItem={this.addItem.bind(this)}/>;
     })
+  }
+
+  removeInstructions() {
+    console.log('instructions removed');
+    this.setState({
+      instructionsActive: false
+    });
   }
 
   renderCategoryListItems(items, categoryName) {
@@ -142,17 +149,23 @@ class CategoryActivity extends Component {
   }
   render() {
     let {uncategorizedList, attempts, currentScore} = this.state;
+    let {instructionsActive, instructionsText } = this.state;
     // let Results = this.state.activityComplete ? <Results /> : <Results />
     var results = this.state.activityComplete ?
       <Results
         attempts={attempts}
         currentScore={currentScore}
         reset={this.reset.bind(this)}/> : null;
+
     if (!uncategorizedList) {
       return <div>Loading... </div>
     } else {
         return (
-          <CategoryActivityStyle>
+          <div>
+            <Instructions
+              active={instructionsActive}
+              text={instructionsText}
+              removeInstructions={this.removeInstructions.bind(this)} />
             {results}
             <DescriptionsList items={uncategorizedList}
               renderCategoryListItems={this.renderCategoryListItems}
@@ -166,7 +179,7 @@ class CategoryActivity extends Component {
             <CategoriesWrapper>
               {this.renderCategories()}
             </CategoriesWrapper>
-          </CategoryActivityStyle>
+          </div>
         )
     }
   }
