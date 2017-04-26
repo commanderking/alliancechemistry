@@ -3,14 +3,12 @@ import styled from 'styled-components';
 const ListItem = styled.li`
   list-style-type: none;
   padding: 0.25em;
-  border: 1px solid black;
-  &:hover {
-    cursor: pointer;
-  }
+  background-color: #FAFAFA;
   width: 90%;
   margin:auto;
   margin-bottom: 0.5em;
   margin-top: 0.5em;
+
   color: ${props => {
     switch(props.correct) {
       case true:
@@ -21,7 +19,25 @@ const ListItem = styled.li`
         return 'black'
     }
   }};
-  background-color: #FAFAFA;
+
+  border-radius: 5px;
+  border: ${props => {
+      switch(props.correct) {
+        case true:
+          return '1px solid gray';
+        case false:
+          return '1px solid red';
+        default:
+          return '1px solid gray';
+      }
+  }};
+  img {
+    width: 100%;
+    pointer-events: none;
+  }
+  &:hover {
+    cursor: pointer;
+  }
 `;
 
 export default ListItem;

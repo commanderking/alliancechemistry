@@ -1,11 +1,14 @@
 import React, { Component } from 'react';
+import axios from 'axios';
 import DescriptionsList from './DescriptionsList';
 import CategoryList from './CategoryList';
 import styled from 'styled-components';
 import ListItem from './ListItem';
+import CategorizeWrapper from './CategorizeWrapper';
 import Results from './Results';
 import Instructions from './Instructions';
 import shuffle from '../../utils/shuffle';
+import appURLs from '../../constants/appURLs';
 
 const categories = ["Alpha Decay", "Beta Decay", "Gamma Radiation"];
 
@@ -40,14 +43,20 @@ class CategoryActivity extends Component {
     }
   }
   componentDidMount() {
-    var initialState = {};
-    initialState.uncategorizedList = shuffle(testList);
-    initialState.instructionsText = instructions;
-    initialState.highScore = testList.length;
-    categories.forEach((categoryName, i)=> {
-      initialState[categoryName] = [];
-    })
-    this.setState(initialState, console.log(this.state));
+    const URL = 'https://s3.amazonaws.com/alliance-chemistry/activityData/nuclear-chemistry/radiationTypes.json';
+    const request = axios.get(URL).
+      then((response) => {
+        let { activeItemsCount, categories, instructions, listItems } = response.data;
+        let initialState = {};
+        initialState.uncategorizedList = shuffle(listItems).slice(0, activeItemsCount);
+        initialState.instructionsText = instructions;
+        initialState.highScore = activeItemsCount;
+        categories.forEach((categoryName, i)=> {
+          initialState[categoryName] = [];
+        })
+        this.setState(initialState);
+      })
+
   }
   addItem(categoryName, item) {
     if (this.state[categoryName].length === 0) {
@@ -63,10 +72,12 @@ class CategoryActivity extends Component {
   }
   handleDragItem(event) {
     console.log("dragging");
-    let {index, correctcategory, currentcategory} = event.target.dataset;
+    let {index, correctcategory, currentcategory, type, content} = event.target.dataset;
+    console.log(event.target.dataset)
     this.setState({ draggedItem: {
       index: index,
-      text: event.target.innerHTML,
+      type: type,
+      content: content,
       correctCategory: correctcategory,
       currentCategory: currentcategory || "uncategorizedList"
     }});
@@ -109,17 +120,16 @@ class CategoryActivity extends Component {
     window.location.reload();
   }
   renderCategories() {
-    var that = this;
     return categories.map((categoryName) => {
       return <CategoryList
         key={categoryName} categoryName={categoryName}
         currentItems={this.state[categoryName]}
-        removeItem={that.removeItem.bind(this)}
+        removeItem={this.removeItem.bind(this)}
         handleDragItem={this.handleDragItem.bind(this)}
-        renderCategoryListItems={this.renderCategoryListItems}
+        renderCategoryListItems={this.renderCategoryListItems.bind(this)}
         draggedItem={this.state.draggedItem}
-        addItem={this.addItem.bind(this)}/>;
-    })
+        addItem={this.addItem.bind(this)} />;
+    });
   }
 
   removeInstructions() {
@@ -130,19 +140,41 @@ class CategoryActivity extends Component {
   }
 
   renderCategoryListItems(items, categoryName) {
-    var that = this;
     return items.map((item, i) => {
+
+      // Determine to display image or text depending on item
+      let itemDisplay = item.type === "image" ? 
+          <img src={`${appURLs.IMAGE_BASE}/${item.content}`}/>
+          : item.content;
+
+      if (this.state.draggedItem) {
+        let { index, currentCategory } = this.state.draggedItem;
+        if (i == index && categoryName === currentCategory) {
+          console.log("should be invisible");
+        } else {
+          console.log("should be visible");
+          console.log(i);
+          console.log(index);
+          console.log(categoryName);
+          console.log(currentCategory);
+          console.log(i === index);
+          console.log(categoryName === currentCategory);
+        }
+      }
+
       return (
         <ListItem
           key={i}
           data-index={i}
           correct={item.correct}
+          data-type={item.type}
+          data-content={item.content}
           data-correctcategory={item.correctCategory}
           data-currentcategory={categoryName}
           draggable="true"
           onDragEnd={this.handleDragEnd}
           onDragStart={this.handleDragItem.bind(this)}>
-            {item.text}
+            {itemDisplay}
         </ListItem>
       )
     })
@@ -150,7 +182,6 @@ class CategoryActivity extends Component {
   render() {
     let {uncategorizedList, attempts, currentScore} = this.state;
     let {instructionsActive, instructionsText } = this.state;
-    // let Results = this.state.activityComplete ? <Results /> : <Results />
     var results = this.state.activityComplete ?
       <Results
         attempts={attempts}
@@ -166,66 +197,27 @@ class CategoryActivity extends Component {
               active={instructionsActive}
               text={instructionsText}
               removeInstructions={this.removeInstructions.bind(this)} />
-            {results}
-            <DescriptionsList items={uncategorizedList}
-              renderCategoryListItems={this.renderCategoryListItems}
-              handleDragItem={this.handleDragItem.bind(this)}
-              handleDragEnd={this.handleDragEnd.bind(this)}
-              checkAnswer={this.checkAnswer.bind(this)}
-              attempts={this.state.attempts}
-              currentScore={this.state.currentScore}
-              highScore={this.state.highScore}
-              activityComplete={this.state.activityComplete}/>
-            <CategoriesWrapper>
-              {this.renderCategories()}
-            </CategoriesWrapper>
+            <CategorizeWrapper
+              instructionsActive={instructionsActive}
+            >
+              {results}
+              <DescriptionsList items={uncategorizedList}
+                renderCategoryListItems={this.renderCategoryListItems.bind(this)}
+                handleDragItem={this.handleDragItem.bind(this)}
+                handleDragEnd={this.handleDragEnd.bind(this)}
+                checkAnswer={this.checkAnswer.bind(this)}
+                attempts={this.state.attempts}
+                currentScore={this.state.currentScore}
+                highScore={this.state.highScore}
+                activityComplete={this.state.activityComplete}/>
+              <CategoriesWrapper>
+                {this.renderCategories()}
+              </CategoriesWrapper>
+            </CategorizeWrapper>
           </div>
         )
     }
   }
 }
-
-var testList = [
-  {
-    "text" : "A neutron changes into a proton and an electron",
-    "correctCategory": "Beta Decay"
-  },
-  {
-    "text" : "Can travel across galaxies",
-    "correctCategory" : "Gamma Radiation"
-  },
-  {
-    "text" : "the particles released can be stopped by a piece of paper",
-    "correctCategory" : "Alpha Decay"
-  },
-  {
-    "text" : "the particles released have 2 protons and 2 neutrons like a helium nucleus",
-    "correctCategory": "Alpha Decay"
-  },
-  {
-    "text" : "the particles released can travel only a few centimeters through the air",
-    "correctCategory" : "Alpha Decay"
-  },
-  {
-    "text" : "the particles released can only be stopped by a thick sheet of lead or several meters of concrete or water",
-    "correctCategory": "Gamma Radiation"
-  },
-  {
-    "text" : "is a form of electromagnetic radiation",
-    "correctCategory": "Gamma Radiation"
-  },
-  {
-    "text" : "the particles released can travel a few meters through the air",
-    "correctCategory" : "Beta Decay"
-  },
-  {
-    "text" : "particles released are most dangerous when swallowed or breathed in",
-    "correctCategory": "Alpha Decay"
-  },
-  {
-    "text" : "can be used to reduce the risk of food-borne illnesses",
-    "correctCategory" : "Gamma Radiation"
-  },
-]
 
 export default CategoryActivity;

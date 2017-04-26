@@ -5,15 +5,18 @@ import { Button } from 'react-bootstrap';
 
 const DescriptionListWrapper = styled.div`
   width: 25%;
-  display: inline-block;
-  height: 100vh;
-  overflow: scroll;
   text-align: center;
+  display: inline-block;
 `;
 
 const List = styled.ul`
   width: 100%;
-  padding-left: 0em;
+  height: 90vh;
+  min-height: 500px;
+  overflow: scroll;
+  background-color: lightblue;
+  border-radius: 5px;
+  padding: 1em 0em;
 `;
 
 const ScoreSpan = styled.span`
@@ -41,32 +44,38 @@ class DescriptionsList extends Component {
           null :
           <Button bsStyle="primary" onClick={this.props.checkAnswer}>Submit Answers</Button>
 
-      // Don't show Current / Attempted score when user hasn't attempted
-      // TODO: Should be its own component
+      // Don't show Current or Attempted score when user hasn't attempted
+      // TODO: Should be its own component/
       let progressDisplay;
       if (attempts === 0 || currentScore === highScore) {
         progressDisplay = <h3>Ready to Submit?</h3>;
       } else {
-        progressDisplay = <div>
-                            <h3>Current Score: <ScoreSpan currentScore = {currentScore}
-                                                          highScore = {highScore}>
-                                                          {currentScore} / {highScore}
-                                              </ScoreSpan>
-                            </h3>
-                            <h3>Attempts: {attempts}</h3>
-                          </div>
+        progressDisplay = (
+          <div>
+            <h3>Current Score: <ScoreSpan currentScore = {currentScore}
+                                          highScore = {highScore}>
+                                          {currentScore} / {highScore}
+                              </ScoreSpan>
+            </h3>
+            <h3>Attempts: {attempts}</h3>
+          </div>
+        );
       }
       return (
         <DescriptionListWrapper>
-          {progressDisplay}
-          {activeButton}
+          <h3>Descriptions</h3>
+          <div>
+            {progressDisplay}
+            {activeButton}
+          </div>
         </DescriptionListWrapper>
       )
     }
     return (
       <DescriptionListWrapper>
+        <h3>Descriptions</h3>
+
         <List>
-          <h3>Descriptions</h3>
           {this.props.renderCategoryListItems(this.props.items, "uncategorizedList")}
         </List>
       </DescriptionListWrapper>

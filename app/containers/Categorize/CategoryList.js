@@ -12,6 +12,7 @@ const CategoryUl = styled.div`
 const DropArea = styled.div`
   width: 95%;
   margin: auto;
+  height: 90vh;
   min-height: 500px;
   border-radius: 5px;
   padding: 0.25em;
@@ -25,10 +26,15 @@ const DropArea = styled.div`
 class CategoryList extends Component {
   drop(event) {
     // If statement to prevent drag and drop onto same category
-    let { text, index, correctCategory, currentCategory}= this.props.draggedItem;
-    if (this.props.categoryName !== currentCategory) {
-      this.props.addItem(this.props.categoryName, {
-        "text" : text,
+    let { categoryName } = this.props;
+    let { content, type, index, correctCategory, currentCategory } = this.props.draggedItem;
+    let newItem = type ? "image" : "content";
+
+    // If item moved to a new category
+    if (categoryName !== currentCategory) {
+      this.props.addItem(categoryName, {
+        "type" : type,
+        "content" : content,
         "correctCategory" : correctCategory,
         "currentCategory" : currentCategory
       })
@@ -48,7 +54,8 @@ class CategoryList extends Component {
         <DropArea
           onDrop={this.drop.bind(this)}
           onDragOver={this.allowDrop.bind(this)}
-          draggedItem={this.props.draggedItem}>
+          draggedItem={this.props.draggedItem}
+        >
           {this.props.renderCategoryListItems(currentItems, categoryName)}
         </DropArea>
       </CategoryUl>
