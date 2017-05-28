@@ -9,27 +9,27 @@ const ListItem = styled.li`
   margin-bottom: 0.5em;
   margin-top: 0.5em;
 
-  color: ${props => {
-    switch(props.correct) {
+  color: ${(props) => {
+    switch (props.correct) {
       case true:
-        return 'black'
+        return 'black';
       case false:
-        return 'red'
+        return 'red';
       default:
-        return 'black'
+        return 'black';
     }
   }};
 
   border-radius: 5px;
-  border: ${props => {
-      switch(props.correct) {
-        case true:
-          return '1px solid gray';
-        case false:
-          return '1px solid red';
-        default:
-          return '1px solid gray';
-      }
+  border: ${(props) => {
+    switch (props.correct) {
+      case true:
+        return '1px solid gray';
+      case false:
+        return '1px solid red';
+      default:
+        return '1px solid gray';
+    }
   }};
   img {
     width: 100%;

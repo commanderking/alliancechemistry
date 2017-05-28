@@ -1,16 +1,16 @@
+import _ from 'lodash';
 import React, { Component } from 'react';
 import axios from 'axios';
+import styled from 'styled-components';
+
 import DescriptionsList from './DescriptionsList';
 import CategoryList from './CategoryList';
-import styled from 'styled-components';
 import ListItem from './ListItem';
 import CategorizeWrapper from './CategorizeWrapper';
+import ResultsWrapper from './ResultsWrapper';
 import Results from './Results';
 import Instructions from './Instructions';
-import shuffle from '../../utils/shuffle';
 import appURLs from '../../constants/appURLs';
-
-const categories = ["Alpha Decay", "Beta Decay", "Gamma Radiation"];
 
 const CategoriesWrapper = styled.div`
   width: 75%;
@@ -22,146 +22,151 @@ const CategoriesWrapper = styled.div`
   position: relative;
 `;
 
-var instructions = "Categorize each description in as few attempts as possible";
-
+export function getInitialState() {
+  return {
+    attempts: 0,
+    currentScore: 0,
+    highScore: 0,
+    activityComplete: false,
+    uncategorizedList: null,
+    instructionsActive: true,
+    instructionsText: '',
+    categories: [],
+  };
+}
 
 class CategoryActivity extends Component {
 
   constructor(props) {
     super(props);
-    this.state = this.initialState();
+    this.state = getInitialState();
   }
-  initialState() {
-    return {
-      attempts: 0,
-      currentScore: 0,
-      highScore: 0,
-      activityComplete: false,
-      uncategorizedList: null,
-      instructionsActive: true,
-      instructionsText: ""
-    }
-  }
+
   componentDidMount() {
+    console.log('component mounted');
     const URL = 'https://s3.amazonaws.com/alliance-chemistry/activityData/nuclear-chemistry/radiationTypes.json';
-    const request = axios.get(URL).
-      then((response) => {
-        let { activeItemsCount, categories, instructions, listItems } = response.data;
-        let initialState = {};
-        initialState.uncategorizedList = shuffle(listItems).slice(0, activeItemsCount);
+    axios.get(URL)
+      .then((response) => {
+        const { activeItemsCount, categories, instructions, listItems } = response.data;
+        const initialState = {};
+        initialState.uncategorizedList = _.shuffle(listItems).slice(0, activeItemsCount);
         initialState.instructionsText = instructions;
         initialState.highScore = activeItemsCount;
-        categories.forEach((categoryName, i)=> {
+        initialState.categories = categories;
+        categories.forEach((categoryName) => {
           initialState[categoryName] = [];
-        })
+        });
         this.setState(initialState);
-      })
+      });
 
+    _.bindAll(this,
+      'handleDragEnd',
+      'reset',
+      'removeInstructions',
+      'renderCategoryListItems',
+      'handleDragItem',
+      'handleDragEnd',
+      'checkAnswer',
+      'removeItem',
+      'addItem',
+    );
   }
+
   addItem(categoryName, item) {
+    console.log(categoryName);
+    console.log(this.state);
     if (this.state[categoryName].length === 0) {
-      this.setState({[categoryName] : [item]});
+      this.setState({ [categoryName]: [item] });
     } else {
-      this.setState({[categoryName] : [...this.state[categoryName], item]});
+      this.setState({ [categoryName]: [...this.state[categoryName], item] });
     }
   }
   removeItem(index, currentCategory) {
-    let newCategoryState = this.state[currentCategory].slice(0);
+    const newCategoryState = this.state[currentCategory].slice(0);
     newCategoryState.splice(index, 1);
-    this.setState({[currentCategory] : newCategoryState});
+    this.setState({ [currentCategory]: newCategoryState });
   }
   handleDragItem(event) {
-    console.log("dragging");
-    let {index, correctcategory, currentcategory, type, content} = event.target.dataset;
-    console.log(event.target.dataset)
+    /*
+     *data-indexes can only be saved as lowercase, which is why correctcategory needs to
+     *be converted to correctCategory in setState
+    */
+
+    const { index, correctcategory, currentcategory, type, content } = event.target.dataset;
     this.setState({ draggedItem: {
-      index: index,
-      type: type,
-      content: content,
+      index,
+      type,
+      content,
       correctCategory: correctcategory,
-      currentCategory: currentcategory || "uncategorizedList"
-    }});
+      currentCategory: currentcategory || 'uncategorizedList',
+    } });
   }
   handleDragEnd() {
-    this.setState({draggedItem: null});
+    this.setState({ draggedItem: null });
   }
   checkAnswer() {
-    var that = this;
     let currentScore = 0;
-    let answerKey = {};
+    const answerKey = {};
 
     // mark item as correct or not and tally score
-    categories.forEach(function(category,i) {
-      answerKey[category] = that.state[category].map((item, i) => {
+    this.state.categories.forEach((category) => {
+      answerKey[category] = this.state[category].map((item) => {
+        const correctedItem = item;
         if (item.correctCategory !== category) {
-          item.correct = false;
+          correctedItem.correct = false;
         } else {
-          item.correct = true;
+          correctedItem.correct = true;
           currentScore += 1;
         }
-        return item;
+        return correctedItem;
       });
     });
 
     // Set the new state to reflect incorrect answers
-    let activityComplete = currentScore === this.state.highScore ? true: false;
+    const activityComplete = currentScore === this.state.highScore;
 
-    let newState = {
+    const newState = {
       attempts: this.state.attempts += 1,
-      currentScore: currentScore,
-      activityComplete: activityComplete
-    }
-    categories.forEach((categoryName, i)=> {
+      currentScore,
+      activityComplete,
+    };
+    this.state.categories.forEach((categoryName) => {
       newState[categoryName] = answerKey[categoryName];
-    })
+    });
     this.setState(newState);
   }
   reset() {
     window.location.reload();
   }
-  renderCategories() {
-    return categories.map((categoryName) => {
-      return <CategoryList
-        key={categoryName} categoryName={categoryName}
-        currentItems={this.state[categoryName]}
-        removeItem={this.removeItem.bind(this)}
-        handleDragItem={this.handleDragItem.bind(this)}
-        renderCategoryListItems={this.renderCategoryListItems.bind(this)}
-        draggedItem={this.state.draggedItem}
-        addItem={this.addItem.bind(this)} />;
+
+  removeInstructions() {
+    this.setState({
+      instructionsActive: false,
     });
   }
 
-  removeInstructions() {
-    console.log('instructions removed');
-    this.setState({
-      instructionsActive: false
+  renderCategories() {
+    return this.state.categories.map((categoryName) => {
+      return (
+        <CategoryList
+          key={categoryName} categoryName={categoryName}
+          currentItems={this.state[categoryName]}
+          removeItem={this.removeItem}
+          handleDragItem={this.handleDragItem}
+          renderCategoryListItems={this.renderCategoryListItems}
+          draggedItem={this.state.draggedItem}
+          addItem={this.addItem}
+        />
+      );
     });
   }
 
   renderCategoryListItems(items, categoryName) {
     return items.map((item, i) => {
-
       // Determine to display image or text depending on item
-      let itemDisplay = item.type === "image" ? 
-          <img src={`${appURLs.IMAGE_BASE}/${item.content}`}/>
+      const itemDisplay = item.type === 'image' ?
+        <img alt="item text" src={`${appURLs.IMAGE_BASE}/${item.content}`} />
           : item.content;
-
-      if (this.state.draggedItem) {
-        let { index, currentCategory } = this.state.draggedItem;
-        if (i == index && categoryName === currentCategory) {
-          console.log("should be invisible");
-        } else {
-          console.log("should be visible");
-          console.log(i);
-          console.log(index);
-          console.log(categoryName);
-          console.log(currentCategory);
-          console.log(i === index);
-          console.log(categoryName === currentCategory);
-        }
-      }
-
       return (
         <ListItem
           key={i}
@@ -173,50 +178,58 @@ class CategoryActivity extends Component {
           data-currentcategory={categoryName}
           draggable="true"
           onDragEnd={this.handleDragEnd}
-          onDragStart={this.handleDragItem.bind(this)}>
-            {itemDisplay}
+          onDragStart={this.handleDragItem}
+        >
+          {itemDisplay}
         </ListItem>
-      )
-    })
+      );
+    });
   }
   render() {
-    let {uncategorizedList, attempts, currentScore} = this.state;
-    let {instructionsActive, instructionsText } = this.state;
-    var results = this.state.activityComplete ?
-      <Results
-        attempts={attempts}
-        currentScore={currentScore}
-        reset={this.reset.bind(this)}/> : null;
+    const { uncategorizedList, attempts, currentScore } = this.state;
+    const { instructionsActive, instructionsText } = this.state;
+    const results = this.state.activityComplete ?
+      (
+        <ResultsWrapper>
+          <Results
+            attempts={attempts}
+            currentScore={currentScore}
+            reset={this.reset}
+          />
+        </ResultsWrapper>
+      ) : null;
 
     if (!uncategorizedList) {
-      return <div>Loading... </div>
-    } else {
-        return (
-          <div>
-            <Instructions
-              active={instructionsActive}
-              text={instructionsText}
-              removeInstructions={this.removeInstructions.bind(this)} />
-            <CategorizeWrapper
-              instructionsActive={instructionsActive}
-            >
-              {results}
-              <DescriptionsList items={uncategorizedList}
-                renderCategoryListItems={this.renderCategoryListItems.bind(this)}
-                handleDragItem={this.handleDragItem.bind(this)}
-                handleDragEnd={this.handleDragEnd.bind(this)}
-                checkAnswer={this.checkAnswer.bind(this)}
-                attempts={this.state.attempts}
-                currentScore={this.state.currentScore}
-                highScore={this.state.highScore}
-                activityComplete={this.state.activityComplete}/>
-              <CategoriesWrapper>
-                {this.renderCategories()}
-              </CategoriesWrapper>
-            </CategorizeWrapper>
-          </div>
-        )
+      return <div>Loading... </div>;
     }
+    return (
+      <div>
+        <Instructions
+          active={instructionsActive}
+          text={instructionsText}
+          removeInstructions={this.removeInstructions}
+        />
+        <CategorizeWrapper
+          instructionsActive={instructionsActive}
+        >
+          {results}
+          <DescriptionsList
+            items={uncategorizedList}
+            renderCategoryListItems={this.renderCategoryListItems}
+            handleDragItem={this.handleDragItem}
+            handleDragEnd={this.handleDragEnd}
+            checkAnswer={this.checkAnswer}
+            attempts={this.state.attempts}
+            currentScore={this.state.currentScore}
+            highScore={this.state.highScore}
+            activityComplete={this.state.activityComplete}
+          />
+          <CategoriesWrapper>
+            {this.renderCategories()}
+          </CategoriesWrapper>
+        </CategorizeWrapper>
+      </div>
+    );
   }
 }
 

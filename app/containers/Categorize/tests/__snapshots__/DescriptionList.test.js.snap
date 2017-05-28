@@ -1,0 +1,34 @@
+exports[`DescriptionList render with all items categorized and some attempts has correct structure and props 1`] = `
+<styled.div>
+  <h3>
+    Descriptions
+  </h3>
+  <div>
+    <div>
+      <h3>
+        Current Score: 
+        <styled.span
+          currentScore={4}
+          highScore={10}>
+          4
+           / 
+          10
+        </styled.span>
+      </h3>
+      <h3>
+        Attempts: 
+        1
+      </h3>
+    </div>
+    <Button
+      active={false}
+      block={false}
+      bsClass="btn"
+      bsStyle="primary"
+      disabled={false}
+      onClick={[Function]}>
+      Submit Answers
+    </Button>
+  </div>
+</styled.div>
+`;
